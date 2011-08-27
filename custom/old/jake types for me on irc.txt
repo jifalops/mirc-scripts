@@ -1,0 +1,10 @@
+nMSG {
+  var %new_nick = $1
+  var %delay = $2
+  if (!%delay) %delay = 1
+  %current_nick = $me
+  nick %new_nick
+  timer 1 %delay $&
+    nick %current_nick | $&
+    unset %current_nick
+}

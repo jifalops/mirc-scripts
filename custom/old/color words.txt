@@ -1,0 +1,57 @@
+COPY ALL OF THIS AND PASTE IT IN YOUR REMOTE TAB IN YOUR SCRIPTS EDITOR ( START A NEW LINE AND PAST)
+RIGHT CLICK IN THE CHANNEL AND IT SHOULD HAVE AN EXTRA OPTION CALLED COLOR WORDS. CLICK ON THAT
+THEN TYPE
+
+
+
+alias toggleColorWords {
+  if (%color_words == $true) unset %color_words
+  else %color_words = $true
+}
+
+alias colorWords {
+  var %str = $1-
+  var %colorStr
+  var %spaces = $count(%str, $chr(32))
+  var %i = 1
+  var %word
+  var %len
+  var %start = 1
+  var %fg
+  var %bg
+  var %space
+  while (%i <= %spaces) {
+    %fg = $rand(0,15)
+    %bg = $rand(0,15)
+    if (%fg == %bg) continue
+    %space = $pos(%str, $chr(32), %i)
+    %len = %space - %start 
+    %word = $mid(%str, %start, %len)
+    if (%colorStr == $null) %colorStr =  $+ %fg $+ , $+ %bg $+ %word
+    else %colorStr = %colorStr $+ 1,0 $+ $chr(32) $+  $+ %fg $+ , $+ %bg $+ %word
+    %start = %space + 1
+    inc %i
+  }
+  while ($true) {
+    %fg = $rand(0,15)
+    %bg = $rand(0,15)
+    if (%fg != %bg) break
+  }
+  %word = $mid(%str, %start)
+  if (%colorStr == $null) %colorStr =  $+ %fg $+ , $+ %bg $+ %word
+  else %colorStr = %colorStr $+ 1,0 $+ $chr(32) $+  $+ %fg $+ , $+ %bg $+ %word
+  return %colorStr
+}
+
+on 1:input:#: {
+  if (%color_words == $true && $left($1,1) != $chr(47)) {
+    say $colorWords($1-)
+    halt
+  }
+}
+
+menu channel {  
+  -
+  $iif(%color_words == $true, $style(1)) Color Words: toggleColorWords
+  -
+}

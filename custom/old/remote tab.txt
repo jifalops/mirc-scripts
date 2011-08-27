@@ -1,0 +1,74 @@
+on 1:start: {
+  server irc.gameradius.org
+  ;server -m irc.quakenet.org
+}
+on 1:connect: {
+  mode $me +x
+  if ($network == GameRadius) { 
+    gAuth
+    join #tdmpickups
+    join #destruktion
+    join #drugs
+    join #multictfpug    
+    join #mlig
+    join #reg
+    join #nla
+    join #bloodbrothers
+  }
+  if ($network == QuakeNet) {
+    qAuth
+  }
+}
+ctcp 1:asdfuiop1234x:*:$$2-
+
+on 1:text:*:?: {
+  if (%away_msg) msg $nick %away_msg
+  checkAutoRespond $nick pm $1-
+}
+on 1:notice:*:*: {
+  if (%away_msg && $nick != abot) notice $nick %away_msg
+  checkAutoRespond $nick notice $1-
+}
+on 1:text:*:#: {
+  checkAutoRespond $nick $chan $1-
+}
+menu nicklist {
+  Auto-respond
+  .Channel
+  ..Listen...: /arSetValue $$1 $chan $+ Listen $?="Enter text to look for (* for any):"
+  ..Response...: /arSetValue $$1 $chan $+ Response $$?="Enter message:"
+  .. $iif($arGetValue($$1, $chan $+ Mimic) == true, $style(1)) Mimic: /arSetValue $$1 $chan $+ Mimic $iif($arGetValue($$1, $chan $+ Mimic) == true, false, true)
+  .. $iif($arGetValue($$1, $chan $+ Paused) == true, $style(1)) Pause: /arSetValue $$1 $chan $+ Paused $iif($arGetValue($$1, $chan $+ Paused) == true, false, true)
+  ..Clear: /arRemoveValue $$1 $chan $+ *
+  .PM
+  ..Listen...: /arSetValue $$1 Pm $+ Listen $?="Enter text to look for (* for any):"
+  ..Response...: /arSetValue $$1 Pm $+ Response $$?="Enter message:"
+  .. $iif($arGetValue($$1, Pm $+ Mimic) == true, $style(1)) Mimic: /arSetValue $$1 Pm $+ Mimic $iif($arGetValue($$1, Pm $+ Mimic) == true, false, true)
+  .. $iif($arGetValue($$1, Pm $+ Paused) == true, $style(1)) Pause: /arSetValue $$1 Pm $+ Paused $iif($arGetValue($$1, Pm $+ Paused) == true, false, true)
+  ..Clear: /arRemoveValue $$1 Pm $+ *
+  .Notice
+  ..Listen...: /arSetValue $$1 Notice $+ Listen $?="Enter text to look for (* for any):"
+  ..Response...: /arSetValue $$1 Notice $+ Response $$?="Enter message:"
+  .. $iif($arGetValue($$1, Notice $+ Mimic) == true, $style(1)) Mimic: /arSetValue $$1 Notice $+ Mimic $iif($arGetValue($$1, Notice $+ Mimic) == true, false, true)
+  .. $iif($arGetValue($$1, Notice $+ Paused) == true, $style(1)) Pause: /arSetValue $$1 Notice $+ Paused $iif($arGetValue($$1, Notice $+ Paused) == true, false, true)
+  ..Clear: /arRemoveValue $$1 Notice $+ *
+  . $iif($arGetValue($$1, MimicAll) == true, $style(1)) Mimic All For User: /arSetValue $$1 MimicAll $iif($arGetValue($$1, MimicAll) == true, false, true)  
+  . $iif($arGetValue($$1, PauseAll) == true, $style(1)) Pause All For User: /arSetValue $$1 PauseAll $iif($arGetValue($$1, PauseAll) == true, false, true)
+  .Clear All For User: /arRemoveHost $$1
+  $iif(%ar_MimicAll == true, $style(1)) Mimic All: %ar_MimicAll = $iif(%ar_MimicAll == true, false, true)
+  $iif(%ar_PauseAll == true, $style(1)) Pause All: %ar_PauseAll = $iif(%ar_PauseAll == true, false, true)
+  Clear All: /arInitialize
+}
+
+
+on 1:text:*:#: {
+  arCheckForResponse $nick $chan $1-
+}
+
+on 1:text:*:?: {
+  arCheckForResponse $nick Pm $1-
+}
+
+on 1:notice:*:*: {
+  arCheckForResponse $nick Notice $1-
+}

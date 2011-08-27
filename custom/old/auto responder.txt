@@ -1,0 +1,132 @@
+* Auto responder code
+*/
+
+; reset data
+arInitialize {
+  unset %ar_*
+  %ar_Hosts = 0
+  %ar_NextId = 1
+  %ar_MimicAll = false
+  %ar_PauseAll = false
+}
+
+
+; get host by nick or index
+; may not return a value
+arGetHost {
+  if ($1 isnum) var %who = %ar_Host [ $+ [ $1 ] ]
+  else var %who = $ial($1).host  
+  if (!%who) userhost $1 
+  return %who
+}
+
+
+; get host's id as in %arHost<id> = <host>
+; if a nick is given, it looks it up using arGetHost
+arGetHostId {
+  if (. isin $1) var %who = $1
+  else var %who = $arGetHost($1)
+  if (!%who) return
+  var %i = 1
+  while (%i < %ar_NextId) {
+    if (%ar_Host [ $+ [ %i ] ] == %who) return %i
+    inc %i
+  }
+}
+
+
+; add a host to the host list.
+; for example: %arHost<id> = <host>
+; accepts a host or a nick.
+arAddHost {
+  if (. isin $1) var %who = $1
+  else var %who = $arGetHost($1)
+  if (!%who) return 
+  if (!%ar_NextId) arInitialize  
+  %ar_Host [ $+ [ %ar_NextId ] ] = %who
+  inc %ar_Hosts
+  inc %ar_NextId
+}
+
+; remove a host and all data associated with them
+arRemoveHost {
+  var %id = $arGetHostId($1)
+  if (!%id) return 
+  unset %ar_Host [ $+ [ %id ] $+ * ]
+  dec %ar_Hosts
+}
+
+
+; adds a value corresponding to a host
+; if that host doesnt exist, it adds it.
+; expects a nick.
+arSetValue {
+  if (!$arGetHostId($1)) $arAddHost($1)
+  var %id = $arGetHostId($1) 
+  var %name = $2
+  var %value = $3-
+  if (!%id || !%name || (!%value && %value != 0)) return
+  %ar_Host [ $+ [ %id ] $+ [ %name ] ] = %value 
+}
+
+
+; unsets a variable assosiated with a host
+; expects a nick and a variable to look up
+arRemoveValue {
+  var %id = $arGetHostId($1) 
+  var %name = $2
+  ;if (!%id || !%name) return
+  unset %ar_Host [ $+ [ %id ] $+ [ %name ] ]
+}
+
+
+; retrieves a value assosiated with a host
+; expects a nick and a variable to look up
+arGetValue {
+  var %id = $arGetHostId($1)
+  var %name = $2
+  ;if (!%id || !%name) return
+  return %ar_Host [ $+ [ %id ] $+ [ %name ] ]
+}
+
+
+; this is called on a text/notice event
+; expects a nick and where it happened, as well as the text to check
+; either $chan|Pm|Notice
+; if mimic is enabled, it takes priority
+; however, pauses override mimics, larger scope has precedence
+arCheckForResponse {
+  if (%ar_NextId < 0 || %ar_PauseAll == true) return
+
+  var %id = $arGetHostId($1)
+  var %where = $2
+  var %msg = $3-
+  ;echo id = %id where = %where msg = %msg
+  var %response
+  if (%ar_MimicAll == true) %response = %msg
+  else {
+    if (%ar_Host [ $+ [ %id ] $+ PauseAll ] == true) return
+    if (%ar_Host [ $+ [ %id ] $+ MimicAll ] == true) %response = %msg
+    else {
+      if (%ar_Host [ $+ [ %id ] $+ [ %where ] $+ Paused ] == true) return
+      if (%ar_Host [ $+ [ %id ] $+ [ %where ] $+ Mimic ] == true) %response = %msg
+      else {
+        var %text = %ar_Host [ $+ [ %id ] $+ [ %where ] $+ Listen ]
+        ;echo text = %text      
+        if (%text == * || %text isin %msg) {
+          %response = %ar_Host [ $+ [ %id ] $+ [ %where ] $+ Response ]       
+          ;echo response = %response       
+        }
+      }
+    }
+  }
+  if (%response) {
+    if (%where == Pm) msg $1 %response
+    elseif (%where == Notice) notice $1 %response
+    else msg %where %response
+  }
+}
+
+/*
+* End of Auto responder code
+*/

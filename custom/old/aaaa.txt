@@ -1,0 +1,42 @@
+ALIAS
+
+nMSG {
+  var %new_nick = $1
+  var %delay = $2
+  if (!%delay) %delay = 1
+  %current_nick = $me
+  nick %new_nick
+  timer 1 %delay $&
+    nick %current_nick | $&
+    unset %current_nick
+}
+
+j {
+  msg abot .join $chan
+  msg $chan .promote
+}
+
+l msg abot .leaveall
+
+POPUPS
+
+Commands 
+Join channel:/join #$$?="Enter channel name:" 
+Part channel:/part #$$?="Enter channel name:" 
+Query user:/query $$?="Enter nickname and message:" 
+Send notice:/notice $$?="Enter nickname and message:" 
+Whois user:/whois $$?="Enter nickname:" 
+Send CTCP 
+.Ping:/ctcp $$?="Enter nickname:" ping 
+.Time:/ctcp $$?="Enter nickname:" time 
+.Version:/ctcp $$?="Enter nickname:" version 
+Set Away 
+.On:/away $$?="Enter away message:" 
+.Off:/away 
+Invite user:/invite $$?="Enter nickname and channel:" 
+Ban user:/ban $$?="Enter channel and nickname:" 
+Kick user:/kick $$?="Enter channel and nickname:" 
+Ignore user:/ignore $$?="Enter nickname:" 
+Unignore user:/ignore -r $$?="Enter nickname:" 
+Change nick:/nick $$?="Enter new nickname:" 
+Quit IRC:/quit 
