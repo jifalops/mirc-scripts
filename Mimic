@@ -1,0 +1,35 @@
+/**
+* <network> <channel> <varname> <asdf> [value] ...
+*/
+alias set_var {
+  if ($5 == $null) unset % [ $+ [ $$1 ] $+ _ $+ [ $$2 ] $+ [ $$3 ] $+ _ $+ [ $$4 ] ] 
+  else % [ $+ [ $$1 ] $+ _ $+ [ $$2 ]  $+ _ $+ [ $$3 ]  $+ _ $+ [ $$4 ] ] = $5-
+}
+
+alias get_var {
+  return % [ $+ [ $$1 ] $+ _ $+ [ $$2 ]  $+ [ $$3 ] $+ _ $+ [ $$4 ] ] 
+}
+
+alias unset_mimic {
+  set_var $network $chan mimic $1
+}
+
+alias set_mimic {
+  set_var $network $chan mimic $1 $true
+}
+
+alias get_mimic {
+  get_var $network $chan mimic $1
+}
+
+alias toggle_mimic {
+  if ($get_mimic != $null) unset_mimic $1
+  else set_mimic $1
+}
+
+
+menu nicklist {
+  -  
+  $iif($get_mimic($1), $style(1)) Mimic: $toggle_mimic($1)
+  -
+}
